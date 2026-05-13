@@ -314,16 +314,6 @@ body {
   gap: 6px;
 }
 
-.selectors label {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  font-size: 11px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
 .selectors select {
   background: var(--surface-2);
   color: var(--text);
@@ -341,25 +331,74 @@ body {
 
 .time-display {
   margin-top: 4px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   background: var(--surface-2);
   border-radius: 8px;
   border: 1px solid var(--border);
 }
 
-.datetime {
+.time-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.time-block {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  line-height: 1;
+}
+
+.time-main {
   font-family: var(--mono);
-  font-size: 17px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   color: var(--text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.time-seconds {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 3px;
+}
+
+.date-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  text-align: right;
+  line-height: 1;
+}
+
+.weekday {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
+
+.date {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 
 .meta {
-  margin-top: 4px;
+  margin-top: 8px;
   display: flex;
   justify-content: space-between;
+  gap: 8px;
   font-size: 11px;
   color: var(--text-muted);
 }

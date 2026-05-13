@@ -54,29 +54,43 @@ function resolveTimezone(clock) {
 }
 
 const dateFmtCache = new Map();
-function getFormatter(tz, hour12) {
+function getFormatters(tz, hour12) {
   const key = `${tz}|${hour12}`;
   if (!dateFmtCache.has(key)) {
-    dateFmtCache.set(
-      key,
-      new Intl.DateTimeFormat("en-US", {
+    dateFmtCache.set(key, {
+      time: new Intl.DateTimeFormat("en-US", {
+        timeZone: tz,
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12
+      }),
+      seconds: new Intl.DateTimeFormat("en-US", {
+        timeZone: tz,
+        second: "2-digit"
+      }),
+      weekday: new Intl.DateTimeFormat("en-US", {
+        timeZone: tz,
+        weekday: "short"
+      }),
+      date: new Intl.DateTimeFormat("en-US", {
         timeZone: tz,
         year: "numeric",
         month: "numeric",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12
+        day: "numeric"
       })
-    );
+    });
   }
   return dateFmtCache.get(key);
 }
 
-function formatDateTime(date, tz, hour12) {
-  // Produces "5/12/2026 02:30:45 PM" (no comma).
-  return getFormatter(tz, hour12).format(date).replace(",", "");
+function formatParts(date, tz, hour12) {
+  const f = getFormatters(tz, hour12);
+  return {
+    time: f.time.format(date),
+    seconds: f.seconds.format(date),
+    weekday: f.weekday.format(date),
+    date: f.date.format(date)
+  };
 }
 
 function getTzMeta(tz) {
@@ -249,7 +263,11 @@ function renderClock(clock) {
 function tickClock(node, clock) {
   const tz = resolveTimezone(clock);
   const now = new Date();
-  node.querySelector(".datetime").textContent = formatDateTime(now, tz, state.hour12);
+  const parts = formatParts(now, tz, state.hour12);
+  node.querySelector(".time-main").textContent = parts.time;
+  node.querySelector(".time-seconds").textContent = parts.seconds;
+  node.querySelector(".weekday").textContent = parts.weekday;
+  node.querySelector(".date").textContent = parts.date;
   const { abbr, offset } = getTzMeta(tz);
   const tzName = clock.country && clock.country !== "Local"
     ? `${clock.city || ""}${clock.city ? ", " : ""}${clock.country} · ${abbr || tz}`
