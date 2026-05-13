@@ -853,7 +853,7 @@ function buildTimeColorRows() {
     row.className = "time-color-row";
     row.innerHTML = `
       <span class="tc-label">Zone ${i + 1} <span class="tc-range"></span></span>
-      <input type="time" class="tc-time" data-i="${i}" value="${z.start}">
+      <input type="time" class="tc-time" data-i="${i}" value="${z.start}" lang="en-GB" step="60">
       <input type="color" class="tc-color" data-i="${i}" value="${z.color}">
     `;
     row.querySelector(".tc-range").textContent = `(${z.start} – ${next.start})`;

@@ -19,7 +19,8 @@ ScorpioN branding lives in the UI.)
   second.
 - **Time-of-day color dot** — a small dot next to each clock changes color based
   on local time (e.g. yellow for dawn/dusk, green for daytime, red for late
-  night). Zones are user-editable in Settings.
+  night). Zones are user-editable in Settings — the zone start times use a
+  24-hour input, and the picker icon follows the active dark/light theme.
 - **Global search** at the top of the panel:
   - Searches **283 cities across 108 countries** (any city or country name, partial
     matches, prefix-ranked first).
