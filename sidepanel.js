@@ -9,11 +9,20 @@ const STORAGE = {
 const LOCAL_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 const DEFAULT_TIME_COLOR_ZONES = [
-  { start: "06:00", color: "#facc15" },
-  { start: "09:00", color: "#22c55e" },
-  { start: "19:00", color: "#facc15" },
-  { start: "22:00", color: "#ef4444" }
+  { name: "Day", start: "09:00", color: "#22c55e" },
+  { name: "Evening", start: "19:00", color: "#facc15" },
+  { name: "Night", start: "22:00", color: "#ef4444" },
+  { name: "Morning", start: "06:00", color: "#facc15" }
 ];
+
+function inferZoneName(start) {
+  const h = parseInt(String(start || "").slice(0, 2), 10);
+  if (isNaN(h)) return "";
+  if (h >= 5 && h < 9) return "Morning";
+  if (h >= 9 && h < 18) return "Day";
+  if (h >= 18 && h < 21) return "Evening";
+  return "Night";
+}
 
 const DEFAULT_SETTINGS = {
   fontFamily: "system",
@@ -848,15 +857,15 @@ function buildTimeColorRows() {
   $timeColorZones.innerHTML = "";
   const zones = state.settings.timeColorZones || [];
   zones.forEach((z, i) => {
-    const next = zones[(i + 1) % zones.length];
+    const label = z.name || inferZoneName(z.start) || `Zone ${i + 1}`;
     const row = document.createElement("div");
     row.className = "time-color-row";
     row.innerHTML = `
-      <span class="tc-label">Zone ${i + 1} <span class="tc-range"></span></span>
-      <input type="time" class="tc-time" data-i="${i}" value="${z.start}" lang="en-GB" step="60">
+      <span class="tc-label"></span>
+      <input type="text" class="tc-time" data-i="${i}" value="${z.start}" inputmode="numeric" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" placeholder="HH:MM" aria-label="${label} start time (24h)">
       <input type="color" class="tc-color" data-i="${i}" value="${z.color}">
     `;
-    row.querySelector(".tc-range").textContent = `(${z.start} – ${next.start})`;
+    row.querySelector(".tc-label").textContent = label;
     $timeColorZones.appendChild(row);
   });
 }
@@ -1026,21 +1035,61 @@ if ($setTimeColor) {
   });
 }
 
+function normalizeHM24(s) {
+  const raw = String(s || "").trim();
+  const m = /^(\d{1,2}):?(\d{0,2})$/.exec(raw);
+  if (!m) return null;
+  const h = parseInt(m[1], 10);
+  const mm = m[2] === "" ? 0 : parseInt(m[2], 10);
+  if (isNaN(h) || isNaN(mm) || h < 0 || h > 23 || mm < 0 || mm > 59) return null;
+  return `${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
+function commitTimeInput(target) {
+  const idx = Number(target.dataset.i);
+  const zone = state.settings.timeColorZones[idx];
+  if (!zone) return;
+  const norm = normalizeHM24(target.value);
+  zone.start = norm || zone.start || "00:00";
+  buildTimeColorRows();
+  tickAll();
+  persistSettings();
+}
+
 if ($timeColorZones) {
   $timeColorZones.addEventListener("input", (e) => {
     const target = e.target;
     if (!(target instanceof HTMLInputElement)) return;
-    const idx = Number(target.dataset.i);
-    const zone = state.settings.timeColorZones[idx];
-    if (!zone) return;
-    if (target.classList.contains("tc-time")) {
-      zone.start = target.value || "00:00";
-      buildTimeColorRows();
-    } else if (target.classList.contains("tc-color")) {
+    if (target.classList.contains("tc-color")) {
+      const idx = Number(target.dataset.i);
+      const zone = state.settings.timeColorZones[idx];
+      if (!zone) return;
       zone.color = target.value;
+      tickAll();
+      persistSettings();
     }
-    tickAll();
-    persistSettings();
+  });
+
+  $timeColorZones.addEventListener("change", (e) => {
+    const target = e.target;
+    if (!(target instanceof HTMLInputElement)) return;
+    if (target.classList.contains("tc-time")) commitTimeInput(target);
+  });
+
+  $timeColorZones.addEventListener("blur", (e) => {
+    const target = e.target;
+    if (!(target instanceof HTMLInputElement)) return;
+    if (target.classList.contains("tc-time")) commitTimeInput(target);
+  }, true);
+
+  $timeColorZones.addEventListener("keydown", (e) => {
+    const target = e.target;
+    if (!(target instanceof HTMLInputElement)) return;
+    if (!target.classList.contains("tc-time")) return;
+    if (e.key === "Enter") {
+      e.preventDefault();
+      target.blur();
+    }
   });
 }
 

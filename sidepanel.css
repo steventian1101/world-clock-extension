@@ -879,15 +879,21 @@ body[data-theme="dark"] .danger-btn:hover {
   display: grid;
   grid-template-columns: 1fr auto auto;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .time-color-row .tc-label {
-  font-size: 0.82rem;
-  color: var(--text-muted);
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  letter-spacing: 0.02em;
 }
 
-.time-color-row input[type="time"] {
+.time-color-row .tc-time {
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border);
@@ -896,26 +902,17 @@ body[data-theme="dark"] .danger-btn:hover {
   font-size: 0.86rem;
   font-family: var(--mono);
   outline: none;
-  width: 96px;
+  width: 64px;
+  text-align: center;
+  letter-spacing: 0.04em;
 }
 
-.time-color-row input[type="time"]:focus {
+.time-color-row .tc-time:focus {
   border-color: var(--accent);
 }
 
-.time-color-row input[type="time"]::-webkit-calendar-picker-indicator {
-  cursor: pointer;
-  opacity: 0.7;
-  filter: none;
-  transition: opacity 0.15s;
-}
-
-.time-color-row input[type="time"]::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
-}
-
-body[data-theme="dark"] .time-color-row input[type="time"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
+.time-color-row .tc-time:invalid {
+  border-color: var(--danger);
 }
 
 .time-color-row input[type="color"] {
