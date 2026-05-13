@@ -13,7 +13,11 @@
       "Bash(node --check \"d:/Workspace/clock-extension/desktop/src/app.js\")",
       "Bash(node --check \"d:/Workspace/clock-extension/desktop/src/timezones.js\")",
       "Bash(ls \"d:/Workspace\" 2>&1)",
-      "Read(//d/Workspace/**)"
+      "Read(//d/Workspace/**)",
+      "Bash(cp \"D:\\\\Workspace\\\\clock-desktop\\\\src\\\\scorpions.js\" \"D:\\\\Workspace\\\\clock-extension\\\\scorpions.js\")"
+    ],
+    "additionalDirectories": [
+      "D:\\Workspace\\clock-desktop\\src"
     ]
   }
 }
