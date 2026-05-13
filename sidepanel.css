@@ -459,6 +459,22 @@ body {
   line-height: 1;
 }
 
+.time-dot {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #888;
+  box-shadow: 0 0 6px rgba(136, 136, 136, 0.6);
+  align-self: center;
+  margin-right: 2px;
+  margin-bottom: 4px;
+  flex: 0 0 auto;
+  transition: background-color 0.8s ease, box-shadow 0.8s ease;
+}
+
+body.hide-time-dot .time-dot { display: none; }
+
 .time-hm {
   font-family: var(--mono);
   font-size: 2.71rem;
@@ -847,6 +863,69 @@ body[data-theme="dark"] .danger-btn:hover {
 
 .color-grid {
   grid-template-columns: repeat(6, 1fr);
+}
+
+.time-color-zones {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.time-color-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.time-color-row .tc-label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.time-color-row input[type="time"] {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 0.86rem;
+  font-family: var(--mono);
+  outline: none;
+  width: 96px;
+}
+
+.time-color-row input[type="time"]:focus {
+  border-color: var(--accent);
+}
+
+.time-color-row input[type="color"] {
+  width: 30px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.link-btn {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.link-btn:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
 }
 
 .color-swatch {

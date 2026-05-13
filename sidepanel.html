@@ -147,6 +147,15 @@
         <div class="settings-block-label">Scorpion color</div>
         <div class="swatch-grid color-grid" id="colorGrid"></div>
       </div>
+      <div class="settings-block">
+        <div class="settings-block-label">Time-of-day dot</div>
+        <label class="settings-row settings-check">
+          <span>Show time-of-day dot</span>
+          <input type="checkbox" id="setTimeColor">
+        </label>
+        <div class="time-color-zones" id="timeColorZones"></div>
+        <button id="timeColorReset" type="button" class="link-btn">Reset to defaults</button>
+      </div>
     </div>
     <footer class="settings-foot">
       <button id="settingsSaveBtn" class="primary-btn" title="Save and close">Save</button>
@@ -166,6 +175,7 @@
       <div class="time-display">
         <div class="time-row">
           <div class="time-main">
+            <span class="time-dot" aria-hidden="true"></span>
             <span class="time-hm">00:00</span>
             <span class="time-sec">00</span>
           </div>

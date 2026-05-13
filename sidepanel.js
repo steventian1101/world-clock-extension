@@ -8,6 +8,13 @@ const STORAGE = {
 
 const LOCAL_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+const DEFAULT_TIME_COLOR_ZONES = [
+  { start: "06:00", color: "#facc15" },
+  { start: "09:00", color: "#22c55e" },
+  { start: "19:00", color: "#facc15" },
+  { start: "22:00", color: "#ef4444" }
+];
+
 const DEFAULT_SETTINGS = {
   fontFamily: "system",
   fontSize: "medium",
@@ -17,7 +24,9 @@ const DEFAULT_SETTINGS = {
   scorpionEnabled: true,
   greetingsEnabled: true,
   scorpionModel: "classic",
-  scorpionColor: "accent"
+  scorpionColor: "accent",
+  timeColorEnabled: true,
+  timeColorZones: DEFAULT_TIME_COLOR_ZONES.map((z) => ({ ...z }))
 };
 
 const state = {
@@ -53,6 +62,9 @@ const $mascot = document.getElementById("mascot");
 const $mascotBubble = document.getElementById("mascotBubble");
 const $scorpionGrid = document.getElementById("scorpionGrid");
 const $colorGrid = document.getElementById("colorGrid");
+const $setTimeColor = document.getElementById("setTimeColor");
+const $timeColorZones = document.getElementById("timeColorZones");
+const $timeColorReset = document.getElementById("timeColorReset");
 const $status = document.getElementById("statusText");
 const $tpl = document.getElementById("clockTemplate");
 const $search = document.getElementById("globalSearch");
@@ -148,6 +160,72 @@ function getTzMeta(tz) {
     offset = parts.find((p) => p.type === "timeZoneName")?.value || "";
   } catch (_) {}
   return { abbr, offset };
+}
+
+function parseHM(s) {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(String(s || "").trim());
+  if (!m) return 0;
+  const h = Math.min(23, Math.max(0, parseInt(m[1], 10)));
+  const mm = Math.min(59, Math.max(0, parseInt(m[2], 10)));
+  return h + mm / 60;
+}
+
+function hexToRgb(hex) {
+  let h = String(hex || "").replace("#", "");
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) return [136, 136, 136];
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+
+function getTzHours(date, tz) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: tz,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  }).formatToParts(date);
+  const pick = (t) => parts.find((p) => p.type === t)?.value || "0";
+  const h = parseInt(pick("hour"), 10) % 24;
+  const m = parseInt(pick("minute"), 10);
+  const s = parseInt(pick("second"), 10);
+  return h + m / 60 + s / 3600;
+}
+
+function computeTimeColor(currentHours, zones) {
+  if (!Array.isArray(zones) || !zones.length) return null;
+  const parsed = zones
+    .map((z) => ({ start: parseHM(z.start), color: hexToRgb(z.color) }))
+    .sort((a, b) => a.start - b.start);
+  const n = parsed.length;
+  if (n === 1) return `rgb(${parsed[0].color.join(",")})`;
+
+  // Anchor each zone's pure color at the zone midpoint, so transitions
+  // between zones become natural gradients across the boundary times.
+  const mids = parsed.map((z, i) => {
+    const next = i + 1 < n ? parsed[i + 1].start : parsed[0].start + 24;
+    return { t: (z.start + next) / 2, color: z.color };
+  });
+  const extended = [
+    { t: mids[n - 1].t - 24, color: mids[n - 1].color },
+    ...mids,
+    { t: mids[0].t + 24, color: mids[0].color }
+  ];
+
+  let t = currentHours;
+  while (t < extended[0].t) t += 24;
+  while (t >= extended[0].t + 24) t -= 24;
+
+  for (let i = 0; i < extended.length - 1; i++) {
+    const a = extended[i];
+    const b = extended[i + 1];
+    if (t >= a.t && t <= b.t) {
+      const f = b.t === a.t ? 0 : (t - a.t) / (b.t - a.t);
+      const c = a.color.map((v, j) => Math.round(v + (b.color[j] - v) * f));
+      return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+    }
+  }
+  return `rgb(${parsed[0].color.join(",")})`;
 }
 
 let SEARCH_INDEX = null;
@@ -406,6 +484,21 @@ function tickClock(node, clock) {
     : `Local · ${abbr || tz}`;
   node.querySelector(".tz-name").textContent = tzName;
   node.querySelector(".tz-offset").textContent = offset;
+
+  const dot = node.querySelector(".time-dot");
+  if (dot) {
+    if (state.settings.timeColorEnabled) {
+      const tzHours = getTzHours(now, tz);
+      const color = computeTimeColor(tzHours, state.settings.timeColorZones);
+      if (color) {
+        dot.style.background = color;
+        dot.style.boxShadow = `0 0 6px ${color}`;
+      }
+    } else {
+      dot.style.background = "";
+      dot.style.boxShadow = "";
+    }
+  }
 }
 
 function tickAll() {
@@ -649,6 +742,7 @@ function applySettings() {
   document.documentElement.dataset.size = s.fontSize;
   document.body.classList.toggle("hide-seconds", !s.showSeconds);
   document.body.classList.toggle("hide-meta", !s.showMeta);
+  document.body.classList.toggle("hide-time-dot", !s.timeColorEnabled);
   document.body.classList.toggle("mascot-on", !!s.scorpionEnabled);
   if ($mascot) {
     $mascot.hidden = !s.scorpionEnabled;
@@ -744,7 +838,27 @@ function syncSettingsUI() {
   $setShowMeta.checked = s.showMeta;
   $setScorpion.checked = s.scorpionEnabled;
   $setGreetings.checked = s.greetingsEnabled;
+  if ($setTimeColor) $setTimeColor.checked = s.timeColorEnabled;
   syncSwatchSelection();
+  buildTimeColorRows();
+}
+
+function buildTimeColorRows() {
+  if (!$timeColorZones) return;
+  $timeColorZones.innerHTML = "";
+  const zones = state.settings.timeColorZones || [];
+  zones.forEach((z, i) => {
+    const next = zones[(i + 1) % zones.length];
+    const row = document.createElement("div");
+    row.className = "time-color-row";
+    row.innerHTML = `
+      <span class="tc-label">Zone ${i + 1} <span class="tc-range"></span></span>
+      <input type="time" class="tc-time" data-i="${i}" value="${z.start}">
+      <input type="color" class="tc-color" data-i="${i}" value="${z.color}">
+    `;
+    row.querySelector(".tc-range").textContent = `(${z.start} – ${next.start})`;
+    $timeColorZones.appendChild(row);
+  });
 }
 
 async function persistSettings() {
@@ -903,6 +1017,42 @@ $setGreetings.addEventListener("change", () => {
   state.settings.greetingsEnabled = $setGreetings.checked;
   persistSettings();
 });
+
+if ($setTimeColor) {
+  $setTimeColor.addEventListener("change", () => {
+    state.settings.timeColorEnabled = $setTimeColor.checked;
+    applySettings();
+    persistSettings();
+  });
+}
+
+if ($timeColorZones) {
+  $timeColorZones.addEventListener("input", (e) => {
+    const target = e.target;
+    if (!(target instanceof HTMLInputElement)) return;
+    const idx = Number(target.dataset.i);
+    const zone = state.settings.timeColorZones[idx];
+    if (!zone) return;
+    if (target.classList.contains("tc-time")) {
+      zone.start = target.value || "00:00";
+      buildTimeColorRows();
+    } else if (target.classList.contains("tc-color")) {
+      zone.color = target.value;
+    }
+    tickAll();
+    persistSettings();
+  });
+}
+
+if ($timeColorReset) {
+  $timeColorReset.addEventListener("click", () => {
+    state.settings.timeColorZones = DEFAULT_TIME_COLOR_ZONES.map((z) => ({ ...z }));
+    state.settings.timeColorEnabled = true;
+    applySettings();
+    syncSettingsUI();
+    persistSettings();
+  });
+}
 
 $settingsSaveBtn.addEventListener("click", () => {
   saveState();
