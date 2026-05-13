@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(& \"d:\\\\Workspace\\\\clock-extension\\\\icons\\\\make-icons.ps1\")",
+      "Bash(node -e \"const f=require\\('fs'\\);const s=f.readFileSync\\('d:/Workspace/clock-extension/timezones.js','utf8'\\);const m=s.replace\\('window.TIMEZONES =','module.exports ='\\);f.writeFileSync\\('d:/tmp_tz.js',m\\);const t=require\\('d:/tmp_tz.js'\\);const c=Object.keys\\(t\\);let cities=0;for\\(const k of c\\)cities+=Object.keys\\(t[k]\\).length;console.log\\('countries='+c.length+' cities='+cities\\);f.unlinkSync\\('d:/tmp_tz.js'\\)\")",
+      "Bash(node --check \"d:/Workspace/clock-extension/sidepanel.js\")",
+      "Bash(npm --version)",
+      "Bash(cargo --version)",
+      "Bash(rustc --version)",
+      "PowerShell(& \"d:\\\\Workspace\\\\clock-extension\\\\desktop\\\\src-tauri\\\\icons\\\\make-tauri-icons.ps1\")",
+      "Bash(npm install *)",
+      "Bash(npx tauri *)",
+      "Bash(node --check \"d:/Workspace/clock-extension/desktop/src/app.js\")",
+      "Bash(node --check \"d:/Workspace/clock-extension/desktop/src/timezones.js\")",
+      "Bash(ls \"d:/Workspace\" 2>&1)",
+      "Read(//d/Workspace/**)"
+    ]
+  }
+}
